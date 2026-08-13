@@ -337,6 +337,11 @@
     btnReset: document.getElementById("btn-reset-votes"),
     btnAdd: document.getElementById("btn-add-party"),
     asOf: document.getElementById("as-of"),
+    mobileDock: document.getElementById("mobile-dock"),
+    mobileDockBtn: document.getElementById("mobile-dock-btn"),
+    dockKind: document.getElementById("dock-kind"),
+    dockSub: document.getElementById("dock-sub"),
+    dockBadge: document.getElementById("dock-badge"),
   };
 
   els.asOf.textContent = `제22대 · ${AS_OF} 기준`;
@@ -437,12 +442,17 @@
     ).join("");
   }
 
-  function voteBox(party, field, label, tone) {
-    const maxOther =
+  function fieldMax(party, field) {
+    return (
       party.seats -
       ((field === "aye" ? 0 : party.aye) +
         (field === "nay" ? 0 : party.nay) +
-        (field === "abstain" ? 0 : party.abstain));
+        (field === "abstain" ? 0 : party.abstain))
+    );
+  }
+
+  function voteBox(party, field, label, tone) {
+    const maxOther = fieldMax(party, field);
     const val = party[field];
     return `
       <div class="vote-box" data-party="${escapeAttr(party.id)}" data-field="${field}">
@@ -454,6 +464,27 @@
           <button type="button" data-step="-1" aria-label="${label} 감소" ${
       val <= 0 ? "disabled" : ""
     }>−</button>
+          <button type="button" data-step="1" aria-label="${label} 증가" ${
+      val >= maxOther ? "disabled" : ""
+    }>+</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function voteRow(party, field, label, tone) {
+    const maxOther = fieldMax(party, field);
+    const val = party[field];
+    return `
+      <div class="vote-row" data-party="${escapeAttr(party.id)}" data-field="${field}">
+        <span class="vote-row__label ${tone}">${label}</span>
+        <div class="vote-row__ctrl">
+          <button type="button" data-step="-1" aria-label="${label} 감소" ${
+      val <= 0 ? "disabled" : ""
+    }>−</button>
+          <input class="vote-input" type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="${maxOther}" value="${val}" aria-label="${escapeAttr(
+      party.shortName + " " + label
+    )}" />
           <button type="button" data-step="1" aria-label="${label} 증가" ${
       val >= maxOther ? "disabled" : ""
     }>+</button>
@@ -476,16 +507,20 @@
               <span class="dot" style="width:10px;height:10px;margin-top:6px;background:${escapeAttr(
                 p.color
               )}"></span>
-              <div>
-                <input class="party-name" type="text" value="${escapeAttr(p.name)}" ${
+              <div style="min-width:0;flex:1">
+                <input class="party-name" type="text" enterkeyhint="done" autocomplete="off" value="${escapeAttr(
+                  p.name
+                )}" ${
           custom ? "" : 'readonly onfocus="this.removeAttribute(\'readonly\')"'
         } aria-label="정당명" />
                 <p class="party-sub">${p.negotiable ? "교섭단체" : "비교섭"} · 출석 ${present} · 불참 ${absent}</p>
               </div>
             </div>
-            <div style="display:flex;align-items:center;gap:0.35rem">
+            <div class="party-controls">
               <label class="seat-input-wrap">의석
-                <input type="number" inputmode="numeric" min="0" max="300" value="${p.seats}" data-seat-input />
+                <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="300" value="${
+                  p.seats
+                }" data-seat-input />
               </label>
               ${
                 custom
@@ -502,6 +537,15 @@
                 ? `<i class="abstain" style="width:${(p.abstain / barDenom) * 100}%"></i>`
                 : ""
             }
+          </div>
+          <div class="vote-rows">
+            ${voteRow(p, "aye", "찬성", "aye")}
+            ${voteRow(p, "nay", "반대", "nay")}
+            ${voteRow(p, "abstain", "기권", "muted")}
+            <div class="vote-row">
+              <span class="vote-row__label subtle">불참</span>
+              <span class="vote-row__static">${absent}</span>
+            </div>
           </div>
           <div class="vote-grid">
             ${voteBox(p, "aye", "찬성", "aye")}
@@ -606,12 +650,32 @@
         <div><dt>찬성</dt><dd class="aye">${result.aye}</dd></div>
         <div><dt>필요</dt><dd>${result.approvalNeed}</dd></div>
       </dl>
-      <details class="mobile-only">
-        <summary>상세 내역</summary>
+      <details class="mobile-only" id="result-details">
+        <summary>상세 내역 보기</summary>
         ${details}
       </details>
       <div class="desktop-only">${details}</div>
     `;
+  }
+
+  function isMobileViewport() {
+    return window.matchMedia("(max-width: 639px)").matches;
+  }
+
+  function renderDock(result) {
+    if (!els.mobileDock) return;
+    if (!isMobileViewport()) {
+      els.mobileDock.hidden = true;
+      document.body.classList.remove("has-mobile-dock");
+      return;
+    }
+    els.mobileDock.hidden = false;
+    document.body.classList.add("has-mobile-dock");
+    const tone = result.passed ? "pass" : "fail";
+    els.dockKind.textContent = result.spec.shortName;
+    els.dockSub.textContent = `출석 ${result.present} · 찬성 ${result.aye} · 필요 ${result.approvalNeed}`;
+    els.dockBadge.textContent = result.short;
+    els.dockBadge.className = `mobile-dock__badge ${tone}`;
   }
 
   function render() {
@@ -622,6 +686,14 @@
     renderPresets();
     renderParties();
     renderResult(result);
+    renderDock(result);
+  }
+
+  function scrollActiveKindIntoView() {
+    const active = els.kindTabs.querySelector('[data-active="true"]');
+    if (active && active.scrollIntoView) {
+      active.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+    }
   }
 
   function escapeHtml(str) {
@@ -656,6 +728,20 @@
     if (!btn) return;
     state.kind = btn.getAttribute("data-kind");
     commit();
+    requestAnimationFrame(scrollActiveKindIntoView);
+  });
+
+  if (els.mobileDockBtn) {
+    els.mobileDockBtn.addEventListener("click", () => {
+      els.resultPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+      const details = document.getElementById("result-details");
+      if (details) details.open = true;
+    });
+  }
+
+  window.addEventListener("resize", () => {
+    const result = evaluate(state.parties, state.kind);
+    renderDock(result);
   });
 
   els.presets.addEventListener("click", (e) => {
@@ -746,4 +832,5 @@
 
   setTheme(currentTheme());
   render();
+  requestAnimationFrame(scrollActiveKindIntoView);
 })();

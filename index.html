@@ -2,11 +2,16 @@
 <html lang="ko" data-theme="light">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
   <title>국회 표결 시뮬레이터</title>
   <meta name="description" content="제22대 국회 정당별 의석·출석·찬반으로 일반 의결·패스트트랙·개헌 등 정족수를 브라우저 로컬에서 독립 시뮬레이션합니다." />
   <meta name="theme-color" content="#e6e9ef" />
   <meta name="color-scheme" content="light dark" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="표결 시뮬" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="format-detection" content="telephone=no" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -27,20 +32,17 @@
 </head>
 <body>
   <div class="app-wash">
-    <div class="top-tools">
-      <div class="top-tools__inner">
-        <span class="local-pill" title="서버에 공유되지 않습니다">이 기기 전용 · 로컬 저장</span>
-        <button type="button" class="theme-switch" id="theme-toggle" role="switch" aria-checked="false" aria-label="테마 전환">
-          <span class="theme-switch-knob" aria-hidden="true"></span>
-        </button>
-      </div>
-    </div>
-
-    <header class="site-header">
-      <div class="site-header__inner">
-        <div>
+    <header class="topbar">
+      <div class="topbar__inner">
+        <div class="topbar__title">
           <p class="eyebrow">대한민국 국회</p>
           <h1>표결 시뮬레이터</h1>
+        </div>
+        <div class="topbar__actions">
+          <span class="local-pill" title="서버에 공유되지 않습니다">이 기기 전용</span>
+          <button type="button" class="theme-switch" id="theme-toggle" role="switch" aria-checked="false" aria-label="테마 전환">
+            <span class="theme-switch-knob" aria-hidden="true"></span>
+          </button>
         </div>
       </div>
     </header>
@@ -51,8 +53,7 @@
         <h2 class="display-title">표결 시뮬레이터</h2>
         <p class="meta tabular" id="seat-summary">법정 300석</p>
         <p class="privacy-note">
-          입력값은 <strong>이 브라우저의 localStorage</strong>에만 저장됩니다.
-          같은 링크를 열어도 다른 사람·다른 기기 화면과 동기화되지 않습니다.
+          입력값은 <strong>이 기기 브라우저</strong>에만 저장됩니다. 다른 사람과 화면이 공유되지 않습니다.
         </p>
       </div>
 
@@ -96,13 +97,24 @@
     </main>
 
     <footer class="site-footer">
-      <p>교육·참고용 독립 시뮬레이터 · 공식 국회 시스템 아님</p>
+      <p>교육·참고용 · 공식 국회 시스템 아님</p>
       <p>
         <a href="https://github.com/Jdragon712/assembly-vote-simulator" target="_blank" rel="noopener noreferrer">GitHub</a>
         ·
         <a href="https://jdragon712.github.io/" target="_blank" rel="noopener noreferrer">Portfolio</a>
       </p>
     </footer>
+
+    <!-- Mobile sticky result dock -->
+    <div class="mobile-dock" id="mobile-dock" hidden>
+      <button type="button" class="mobile-dock__btn" id="mobile-dock-btn" aria-controls="result-panel">
+        <span class="mobile-dock__left">
+          <span class="mobile-dock__kind" id="dock-kind">결과</span>
+          <span class="mobile-dock__sub" id="dock-sub">출석 0 · 찬성 0</span>
+        </span>
+        <span class="mobile-dock__badge" id="dock-badge">부결</span>
+      </button>
+    </div>
   </div>
   <script src="./app.js" defer></script>
 </body>
