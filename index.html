@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>국회 표결 시뮬레이터</title>
+  <meta name="description" content="제22대 국회 정당별 의석·출석·찬반으로 일반 의결·패스트트랙·개헌 등 정족수를 브라우저 로컬에서 독립 시뮬레이션합니다." />
+  <meta name="theme-color" content="#e6e9ef" />
+  <meta name="color-scheme" content="light dark" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css" />
+  <script>
+    (function () {
+      try {
+        var k = "assembly-ui-theme";
+        var t = localStorage.getItem(k);
+        if (t !== "light" && t !== "dark") {
+          t = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        document.documentElement.setAttribute("data-theme", t);
+        document.documentElement.style.colorScheme = t;
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <div class="app-wash">
+    <div class="top-tools">
+      <div class="top-tools__inner">
+        <span class="local-pill" title="서버에 공유되지 않습니다">이 기기 전용 · 로컬 저장</span>
+        <button type="button" class="theme-switch" id="theme-toggle" role="switch" aria-checked="false" aria-label="테마 전환">
+          <span class="theme-switch-knob" aria-hidden="true"></span>
+        </button>
+      </div>
+    </div>
+
+    <header class="site-header">
+      <div class="site-header__inner">
+        <div>
+          <p class="eyebrow">대한민국 국회</p>
+          <h1>표결 시뮬레이터</h1>
+        </div>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="intro">
+        <p class="meta" id="as-of">제22대 · 2026. 7. 16. 기준</p>
+        <h2 class="display-title">표결 시뮬레이터</h2>
+        <p class="meta tabular" id="seat-summary">법정 300석</p>
+        <p class="privacy-note">
+          입력값은 <strong>이 브라우저의 localStorage</strong>에만 저장됩니다.
+          같은 링크를 열어도 다른 사람·다른 기기 화면과 동기화되지 않습니다.
+        </p>
+      </div>
+
+      <div class="layout">
+        <div class="col-main">
+          <section class="card glass">
+            <div class="section-head">
+              <h3>의결 유형</h3>
+              <p>유형에 따라 정족수가 달라집니다</p>
+            </div>
+            <div class="segmented" id="kind-tabs" role="tablist" aria-label="의결 유형"></div>
+            <p class="kind-desc" id="kind-desc"></p>
+          </section>
+
+          <section class="card ios-cell">
+            <div class="section-head row">
+              <h3>정당별 의석</h3>
+              <span class="meta tabular" id="seat-ratio"></span>
+            </div>
+            <div id="seat-bar"></div>
+            <dl class="quota-grid" id="quota-grid"></dl>
+          </section>
+
+          <section class="votes-section">
+            <div class="section-head row">
+              <h3>출석 · 가부</h3>
+              <div class="btn-row">
+                <button type="button" class="btn ghost sm" id="btn-reset-votes">초기화</button>
+                <button type="button" class="btn ghost sm" id="btn-add-party">추가</button>
+              </div>
+            </div>
+            <div class="preset-row" id="presets"></div>
+            <div class="party-list" id="party-list"></div>
+          </section>
+        </div>
+
+        <aside class="col-side">
+          <div class="card glass sticky-result" id="result-panel"></div>
+        </aside>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>교육·참고용 독립 시뮬레이터 · 공식 국회 시스템 아님</p>
+      <p>
+        <a href="https://github.com/Jdragon712/assembly-vote-simulator" target="_blank" rel="noopener noreferrer">GitHub</a>
+        ·
+        <a href="https://jdragon712.github.io/" target="_blank" rel="noopener noreferrer">Portfolio</a>
+      </p>
+    </footer>
+  </div>
+  <script src="./app.js" defer></script>
+</body>
+</html>
