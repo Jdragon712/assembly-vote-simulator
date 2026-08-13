@@ -322,6 +322,9 @@
   }
 
   const state = loadState();
+  // 이전 버전에서 추가된 사용자 정당은 제거 (추가 기능 폐지)
+  state.parties = state.parties.filter((p) => !String(p.id).startsWith("custom-"));
+  if (!state.parties.length) state.parties = cloneDefaults();
 
   const els = {
     themeToggle: document.getElementById("theme-toggle"),
@@ -335,7 +338,6 @@
     partyList: document.getElementById("party-list"),
     resultPanel: document.getElementById("result-panel"),
     btnReset: document.getElementById("btn-reset-votes"),
-    btnAdd: document.getElementById("btn-add-party"),
     asOf: document.getElementById("as-of"),
     mobileDock: document.getElementById("mobile-dock"),
     mobileDockBtn: document.getElementById("mobile-dock-btn"),
@@ -776,26 +778,11 @@
   });
 
   els.btnReset.addEventListener("click", () => {
-    state.parties = applyPreset(state.parties, "clear");
+    // 기본 제22대 의석 구성으로 완전 복원 (추가 정당 제거 + 표 초기화)
+    state.parties = cloneDefaults();
     commit();
   });
 
-  els.btnAdd.addEventListener("click", () => {
-    state.parties.push(
-      normalizeParty({
-        id: `custom-${Date.now()}`,
-        name: "새 정당",
-        shortName: "신규",
-        seats: 1,
-        color: "#5c6370",
-        aye: 0,
-        nay: 0,
-        abstain: 0,
-        negotiable: false,
-      })
-    );
-    commit();
-  });
 
   els.partyList.addEventListener("click", (e) => {
     const card = e.target.closest("[data-party-card]");
