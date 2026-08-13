@@ -662,11 +662,22 @@
     return window.matchMedia("(max-width: 639px)").matches;
   }
 
+  function syncDockHeight() {
+    if (!els.mobileDock || els.mobileDock.hidden) {
+      document.documentElement.style.setProperty("--dock-h", "0px");
+      return;
+    }
+    // include a little breathing room above home indicator / browser chrome
+    const h = Math.ceil(els.mobileDock.getBoundingClientRect().height) + 8;
+    document.documentElement.style.setProperty("--dock-h", h + "px");
+  }
+
   function renderDock(result) {
     if (!els.mobileDock) return;
     if (!isMobileViewport()) {
       els.mobileDock.hidden = true;
       document.body.classList.remove("has-mobile-dock");
+      syncDockHeight();
       return;
     }
     els.mobileDock.hidden = false;
@@ -676,6 +687,8 @@
     els.dockSub.textContent = `출석 ${result.present} · 찬성 ${result.aye} · 필요 ${result.approvalNeed}`;
     els.dockBadge.textContent = result.short;
     els.dockBadge.className = `mobile-dock__badge ${tone}`;
+    // measure after paint so padding-bottom matches real dock size
+    requestAnimationFrame(syncDockHeight);
   }
 
   function render() {
@@ -743,6 +756,17 @@
     const result = evaluate(state.parties, state.kind);
     renderDock(result);
   });
+  window.addEventListener("orientationchange", () => {
+    setTimeout(() => {
+      const result = evaluate(state.parties, state.kind);
+      renderDock(result);
+    }, 200);
+  });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", () => {
+      syncDockHeight();
+    });
+  }
 
   els.presets.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-preset]");
